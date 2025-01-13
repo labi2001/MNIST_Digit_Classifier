@@ -22,7 +22,7 @@ if option == "Upload Image":
     if uploaded_file is not None:
         # Display uploaded image
         image = Image.open(uploaded_file).convert("L")  # Convert to grayscale
-        st.image(image, caption="Uploaded Image", use_column_width=True)
+        st.image(image, caption="Uploaded Image", use_container_width=True)
 
         # Preprocess the image
         image_resized = image.resize((28, 28))  # Resize to 28x28
@@ -31,7 +31,7 @@ if option == "Upload Image":
 
         # Predict
         prediction = model.predict(image_array).argmax()
-        st.write(f"Predicted Digit: **{prediction}**")
+        st.write(f"## Predicted Digit: {prediction}")
 
 elif option == "Draw on Canvas":
     # Create a drawing canvas
@@ -46,22 +46,28 @@ elif option == "Draw on Canvas":
         key="canvas",
     )
 
-    if canvas_result.image_data is not None and canvas_result.image_data.any():
-    # Process the drawing
-        img = Image.fromarray(np.uint8(canvas_result.image_data)).convert("L")  # Convert RGBA to grayscale
-        img_resized = img.resize((28, 28))  # Resize to 28x28
-        img_array = np.array(img_resized) / 255.0  # Normalize pixel values
-        img_array = img_array.reshape(1, 28, 28, 1)  # Reshape for the model
+    # Check if canvas has any drawing (i.e., white pixels)
+    if canvas_result.image_data is not None:
+        # Check if there are any non-black (non-zero) pixels in the canvas
+        if np.count_nonzero(canvas_result.image_data) == 0:  # All black, no drawing
+            st.write("Please draw a digit on the canvas.")
+        else:
+            # Process the drawing
+            img = Image.fromarray(np.uint8(canvas_result.image_data)).convert("L")  # Convert RGBA to grayscale
+            img_resized = img.resize((28, 28))  # Resize to 28x28
+            img_array = np.array(img_resized) / 255.0  # Normalize pixel values
+            img_array = img_array.reshape(1, 28, 28, 1)  # Reshape for the model
 
-        # Display the processed image
-        st.write("Processed Image:")
-        st.image(img_resized, width=150)
+            # Display the processed image
+            st.write("Processed Image:")
+            st.image(img_resized, width=150)
 
-        # Make a prediction
-        prediction = model.predict(img_array).argmax()
-        probabilities = model.predict(img_array).flatten()
-
-        # Display the prediction
-        st.write(f"Predicted Digit: **{prediction}**")
+            # Check if img_array is blank
+            if np.count_nonzero(img_array) == 0:  # Blank image
+                st.write("")
+            else:
+                # Make a prediction using the processed image data
+                prediction = model.predict(img_array).argmax()
+                st.write(f"## Predicted Digit: {prediction}")
     else:
         st.write("Please draw a digit on the canvas.")
