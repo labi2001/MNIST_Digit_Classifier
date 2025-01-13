@@ -64,7 +64,7 @@ elif option == "Draw on Canvas":
 
             # Check if img_array is blank
             if np.count_nonzero(img_array) == 0:  # Blank image
-                st.write("")
+                st.write("The image is blank. Please draw a digit.")
             else:
                 # Make a prediction using the processed image data
                 prediction = model.predict(img_array).argmax()
